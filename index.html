@@ -4,61 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>네이티브 카메라 호출 예제</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        #snapshot {
-            margin-top: 20px;
-        }
-        #snapshot img {
-            width: 100%;
-            max-width: 400px;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        #errorMsg {
-            color: red;
-            margin-top: 20px;
-        }
-    </style>
 </head>
 <body>
-    <h1>네이티브 카메라 호출 테스트</h1>
-    <div id="snapshot">
-        <img id="capturedImage" alt="스냅샷이 여기에 표시됩니다.">
-    </div>
-    <div id="errorMsg"></div>
-
     <script>
-        const capturedImage = document.getElementById('capturedImage');
-        const errorMsg = document.getElementById('errorMsg');
-
-        function displayImage(imageDataURL) {
-            capturedImage.src = imageDataURL;
-            errorMsg.textContent = '';
-        }
-
-        function displayError(message) {
-            errorMsg.textContent = message;
-        }
-
         function callNativeCamera() {
             if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openCamera) {
                 window.webkit.messageHandlers.openCamera.postMessage(null);
             } else {
-                displayError('네이티브 카메라 핸들러가 없습니다.');
+                console.error('네이티브 카메라 핸들러가 없습니다.');
             }
         }
 
         window.onload = function() {
             callNativeCamera();
         };
+
+        function displayImage(imageDataURL) {
+            const img = new Image();
+            img.src = imageDataURL;
+            document.body.appendChild(img);
+        }
+
+        function displayError(message) {
+            console.error('오류:', message);
+        }
 
         window.displayImage = displayImage;
         window.displayError = displayError;
