@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카메라 접근 예제</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        #video {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        #snapshot {
+            margin-top: 20px;
+        }
+        #snapshot img {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #errorMsg {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>카메라 접근 테스트</h1>
+    <button id="startCamera">카메라 켜기</button>
+    <button id="takeSnapshot" disabled>스냅샷 찍기</button>
+    <div id="errorMsg"></div>
+    <video id="video" autoplay playsinline></video>
+    <div id="snapshot">
+        <img id="capturedImage" alt="스냅샷이 여기에 표시됩니다.">
+    </div>
+
+    <script>
+        const startCameraButton = document.getElementById('startCamera');
+        const takeSnapshotButton = document.getElementById('takeSnapshot');
+        const video = document.getElementById('video');
+        const capturedImage = document.getElementById('capturedImage');
+        const errorMsg = document.getElementById('errorMsg');
+        let stream;
+
+        // 카메라 시작 함수
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                takeSnapshotButton.disabled = false;
+                errorMsg.textContent = '';
+            } catch (err) {
+                console.error('카메라 접근 오류:', err);
+                errorMsg.textContent = '카메라 접근에 실패했습니다. 권한을 확인해주세요.';
+            }
+        }
+
+        // 스냅샷 찍기 함수
+        function takeSnapshot() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageDataURL = canvas.toDataURL('image/png');
+            capturedImage.src = imageDataURL;
+        }
+
+        // 버튼 이벤트 리스너
+        startCameraButton.addEventListener('click', startCamera);
+        takeSnapshotButton.addEventListener('click', takeSnapshot);
+
+        // 페이지가 unload될 때 카메라 스트림을 정리
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>
