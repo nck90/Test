@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>카메라 접근 예제</title>
+    <title>네이티브 카메라 호출 예제</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,13 +11,6 @@
             margin: 0;
             padding: 20px;
             background-color: #f0f0f0;
-        }
-        #video {
-            width: 100%;
-            max-width: 400px;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            margin-top: 20px;
         }
         #snapshot {
             margin-top: 20px;
@@ -29,19 +22,6 @@
             border-radius: 10px;
             margin-top: 20px;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
         #errorMsg {
             color: red;
             margin-top: 20px;
@@ -49,52 +29,18 @@
     </style>
 </head>
 <body>
-    <h1>카메라 접근 테스트</h1>
-    <button id="startCamera">카메라 켜기</button>
-    <button id="takeSnapshot" disabled>스냅샷 찍기</button>
-    <div id="errorMsg"></div>
-    <video id="video" autoplay playsinline></video>
+    <h1>네이티브 카메라 호출 테스트</h1>
     <div id="snapshot">
         <img id="capturedImage" alt="스냅샷이 여기에 표시됩니다.">
     </div>
+    <div id="errorMsg"></div>
 
     <script>
-        const startCameraButton = document.getElementById('startCamera');
-        const takeSnapshotButton = document.getElementById('takeSnapshot');
-        const video = document.getElementById('video');
         const capturedImage = document.getElementById('capturedImage');
         const errorMsg = document.getElementById('errorMsg');
-        let stream;
-
-        function startNativeCamera() {
-            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cameraHandler) {
-                window.webkit.messageHandlers.cameraHandler.postMessage(null);
-            } else {
-                errorMsg.textContent = '네이티브 카메라 핸들러가 없습니다.';
-            }
-        }
-
-        async function startCamera() {
-            startNativeCamera();
-        }
-
-        function takeSnapshot() {
-            if (!stream) {
-                errorMsg.textContent = '카메라가 켜져 있지 않습니다.';
-                return;
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageDataURL = canvas.toDataURL('image/png');
-            capturedImage.src = imageDataURL;
-        }
 
         function displayImage(imageDataURL) {
             capturedImage.src = imageDataURL;
-            takeSnapshotButton.disabled = false;
             errorMsg.textContent = '';
         }
 
@@ -102,11 +48,20 @@
             errorMsg.textContent = message;
         }
 
+        function callNativeCamera() {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openCamera) {
+                window.webkit.messageHandlers.openCamera.postMessage(null);
+            } else {
+                displayError('네이티브 카메라 핸들러가 없습니다.');
+            }
+        }
+
+        window.onload = function() {
+            callNativeCamera();
+        };
+
         window.displayImage = displayImage;
         window.displayError = displayError;
-
-        startCameraButton.addEventListener('click', startCamera);
-        takeSnapshotButton.addEventListener('click', takeSnapshot);
     </script>
 </body>
 </html>
