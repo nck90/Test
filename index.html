@@ -66,21 +66,23 @@
         const errorMsg = document.getElementById('errorMsg');
         let stream;
 
-        // 카메라 시작 함수
-        async function startCamera() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                video.srcObject = stream;
-                takeSnapshotButton.disabled = false;
-                errorMsg.textContent = '';
-            } catch (err) {
-                console.error('카메라 접근 오류:', err);
-                errorMsg.textContent = '카메라 접근에 실패했습니다. 권한을 확인해주세요.';
+        function startNativeCamera() {
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cameraHandler) {
+                window.webkit.messageHandlers.cameraHandler.postMessage(null);
+            } else {
+                errorMsg.textContent = '네이티브 카메라 핸들러가 없습니다.';
             }
         }
 
-        // 스냅샷 찍기 함수
+        async function startCamera() {
+            startNativeCamera();
+        }
+
         function takeSnapshot() {
+            if (!stream) {
+                errorMsg.textContent = '카메라가 켜져 있지 않습니다.';
+                return;
+            }
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -90,16 +92,21 @@
             capturedImage.src = imageDataURL;
         }
 
-        // 버튼 이벤트 리스너
+        function displayImage(imageDataURL) {
+            capturedImage.src = imageDataURL;
+            takeSnapshotButton.disabled = false;
+            errorMsg.textContent = '';
+        }
+
+        function displayError(message) {
+            errorMsg.textContent = message;
+        }
+
+        window.displayImage = displayImage;
+        window.displayError = displayError;
+
         startCameraButton.addEventListener('click', startCamera);
         takeSnapshotButton.addEventListener('click', takeSnapshot);
-
-        // 페이지가 unload될 때 카메라 스트림을 정리
-        window.addEventListener('beforeunload', () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        });
     </script>
 </body>
 </html>
